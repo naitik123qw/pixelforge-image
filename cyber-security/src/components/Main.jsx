@@ -86,6 +86,22 @@ const Main = () => {
   const [arActive, setArActive] = useState(false)
   const [selectedSticker, setSelectedSticker] = useState('none')
   const [selectedObject, setSelectedObject] = useState('none')
+  const [browserName, setBrowserName] = useState('Browser')
+
+  const detectBrowser = () => {
+    const ua = navigator.userAgent
+    if (/Edg\//.test(ua)) return 'Edge'
+    if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return 'Chrome'
+    if (/Firefox\//.test(ua)) return 'Firefox'
+    if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari'
+    return 'Other'
+  }
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      setBrowserName(detectBrowser())
+    }
+  }, [])
   const [objectPosition, setObjectPosition] = useState('center')
   const [arCaptureUrl, setArCaptureUrl] = useState('')
   const [arFilters, setArFilters] = useState({ brightness: 100, contrast: 100, saturation: 100 })
@@ -275,6 +291,62 @@ const Main = () => {
     setFilters((prev) => ({ ...prev, [name]: value }))
   }
 
+  const sanitizeFileName = (name) => {
+    const sanitized = name.replace(/\.[^/.]+$/, '').trim().replace(/[\\/:*?"<>|]+/g, '')
+    return sanitized.replace(/\s+/g, '-') || 'image'
+  }
+
+  const getPngFileName = () => {
+    const baseName = sanitizeFileName(originalName)
+    return `pixelforge-enhanced-${baseName}.png`
+  }
+
+  const handleDownloadEnhancedImage = () => {
+    const canvas = canvasRef.current
+    const img = imageRef.current
+    if (!canvas || !img) return
+
+    if (!img.complete) return
+
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.filter = filterString
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    if (selectedObject !== 'none') {
+      drawOverlayObject(ctx, canvas.width, canvas.height)
+    }
+
+    const downloadBlob = (blob) => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = getPngFileName()
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(url), 3000)
+    }
+
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (!blob) return
+        downloadBlob(blob)
+      }, 'image/png')
+    } else {
+      const dataURL = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataURL
+      link.download = getPngFileName()
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
   const applyAutoEnhance = () => {
     applyPreset('vivid')
   }
@@ -438,53 +510,51 @@ const Main = () => {
                       Live AR Lens
                     </button>
                   </div>
-                  {arActive && (
-                    <div className='flex flex-wrap gap-2'>
-                      {arStickerOptions.map((option) => (
-                        <button
-                          key={option.key}
-                          type='button'
-                          onClick={() => setSelectedSticker(option.key)}
-                          className={`rounded-3xl px-3 py-2 text-sm font-semibold transition ${selectedSticker === option.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {!arActive && previewUrl && (
-                  <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
-                    <p className='text-sm font-semibold text-white'>Add object to image</p>
-                    <div className='mt-4 grid gap-3 sm:grid-cols-2'>
-                      {objectOptions.map((option) => (
-                        <button
-                          key={option.key}
-                          type='button'
-                          onClick={() => setSelectedObject(option.key)}
-                          className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${selectedObject === option.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
-                        >
-                          {option.emoji} {option.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className='mt-4 flex flex-wrap gap-2'>
-                      {objectPositionOptions.map((position) => (
-                        <button
-                          key={position.key}
-                          type='button'
-                          onClick={() => setObjectPosition(position.key)}
-                          className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${objectPosition === position.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
-                        >
-                          {position.label}
-                        </button>
-                      ))}
-                    </div>
+                  <div className='rounded-3xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-slate-300'>
+                    <p className='font-semibold text-white'>Detected browser</p>
+                    <p>{browserName}</p>
                   </div>
-                )}
+                </div>
+                <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
+                  <p className='text-sm font-semibold text-white'>Enhanced preview</p>
+                  <div className='mt-4 overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 p-3'>
+                    <img
+                      src={enhancedUrl || previewUrl}
+                      alt='Enhanced preview'
+                      className='h-60 w-full object-contain'
+                    />
+                  </div>
+                </div>
+                <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
+                  <p className='text-sm font-semibold text-white'>Add object to image</p>
+                  <div className='mt-4 grid gap-3 sm:grid-cols-2'>
+                    {objectOptions.map((option) => (
+                      <button
+                        key={option.key}
+                        type='button'
+                        onClick={() => setSelectedObject(option.key)}
+                        className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${selectedObject === option.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                      >
+                        {option.emoji} {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className='mt-4 flex flex-wrap gap-2'>
+                    {objectPositionOptions.map((position) => (
+                      <button
+                        key={position.key}
+                        type='button'
+                        onClick={() => setObjectPosition(position.key)}
+                        className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${objectPosition === position.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                      >
+                        {position.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-                {arActive ? (
+              {arActive ? (
                   <div className='relative h-80 overflow-hidden rounded-3xl border border-slate-700 bg-black'>
                     <video
                       ref={videoRef}
@@ -529,14 +599,14 @@ const Main = () => {
               <div className='mt-5 flex flex-col gap-3 sm:flex-row sm:items-center'>
                 {!arActive ? (
                   <>
-                    <a
-                      href={enhancedUrl || previewUrl || '#'}
-                      download={`pixelforge-enhanced-${originalName}`}
-                      className={`inline-flex items-center justify-center rounded-3xl px-5 py-3 text-sm font-semibold transition ${previewUrl ? 'bg-blue-500 text-white hover:bg-blue-400' : 'cursor-not-allowed bg-slate-700 text-slate-400'}`}
-                      aria-disabled={!previewUrl}
+                    <button
+                      type='button'
+                      onClick={handleDownloadEnhancedImage}
+                      disabled={!enhancedUrl}
+                      className={`inline-flex items-center justify-center rounded-3xl px-5 py-3 text-sm font-semibold transition ${enhancedUrl ? 'bg-blue-500 text-white hover:bg-blue-400' : 'cursor-not-allowed bg-slate-700 text-slate-400'}`}
                     >
                       Download Enhanced Image
-                    </a>
+                    </button>
                     <span className='text-sm text-slate-500'>Use the sliders to fine-tune the result before downloading.</span>
                   </>
                 ) : (
