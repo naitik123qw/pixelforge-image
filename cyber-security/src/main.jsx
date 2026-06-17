@@ -13,9 +13,44 @@ createRoot(document.getElementById('root')).render(
 )
 
 if ('serviceWorker' in navigator) {
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations().then((regs) =>
+      regs.forEach((reg) => reg.unregister())
+    )
+  }
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.warn('Service worker registration failed:', error)
+    let refreshing = false
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return
+      refreshing = true
+      window.location.reload()
     })
+
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        if (registration.waiting) {
+          window.location.reload()
+          return
+        }
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing
+          if (!newWorker) return
+
+          newWorker.addEventListener('statechange', () => {
+            if (
+              newWorker.state === 'installed' &&
+              navigator.serviceWorker.controller
+            ) {
+              window.location.reload()
+            }
+          })
+        })
+      })
+      .catch((error) => {
+        console.warn('Service worker registration failed:', error)
+      })
   })
 }
