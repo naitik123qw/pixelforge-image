@@ -544,6 +544,26 @@ const Main = () => {
         </div>
       </div>
 
+      <div className='mt-8 rounded-4xl border border-blue-500/20 bg-slate-900/90 p-6 shadow-2xl shadow-blue-950/20 animate-fade-in-up'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div>
+            <p className='text-sm font-semibold uppercase tracking-[0.24em] text-blue-400'>Customer Support</p>
+            <h2 className='mt-2 text-2xl font-semibold text-white'>Need help with PixelForge?</h2>
+            <p className='mt-3 max-w-2xl text-sm text-slate-300'>Our team is available to help with uploads, AR lenses, or export issues. Reach out anytime and we’ll get back to you quickly.</p>
+          </div>
+          <div className='grid gap-3 sm:grid-cols-2'>
+            <a href='mailto:support@pixelforge.ai' className='rounded-3xl border border-blue-500/40 bg-blue-500/10 px-5 py-4 text-left text-sm text-white transition duration-300 hover:-translate-y-1 hover:bg-blue-500/20'>
+              <p className='font-semibold'>Email Support</p>
+              <p className='text-slate-300'>support@pixelforge.ai</p>
+            </a>
+            <a href='tel:+18001234567' className='rounded-3xl border border-slate-700/80 bg-slate-950/80 px-5 py-4 text-left text-sm text-white transition duration-300 hover:-translate-y-1 hover:border-blue-500/40'>
+              <p className='font-semibold'>Call Sales</p>
+              <p className='text-slate-300'>+1 (800) 123-4567</p>
+            </a>
+          </div>
+        </div>
+      </div>
+
       <canvas ref={canvasRef} className='hidden' />
     </section>
   )
