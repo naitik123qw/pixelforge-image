@@ -83,8 +83,18 @@ const Main = () => {
   const [originalName, setOriginalName] = useState('image.png')
   const [filters, setFilters] = useState(defaultFilters)
   const [selectedPreset, setSelectedPreset] = useState('original')
+  const [arActive, setArActive] = useState(false)
+  const [selectedSticker, setSelectedSticker] = useState('none')
+  const [selectedObject, setSelectedObject] = useState('none')
+  const [objectPosition, setObjectPosition] = useState('center')
+  const [arCaptureUrl, setArCaptureUrl] = useState('')
+  const [arFilters, setArFilters] = useState({ brightness: 100, contrast: 100, saturation: 100 })
+  const [cameraError, setCameraError] = useState('')
   const imageRef = useRef(null)
   const canvasRef = useRef(null)
+  const videoRef = useRef(null)
+  const arCanvasRef = useRef(null)
+  const streamRef = useRef(null)
 
   const filterString = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) grayscale(${filters.grayscale}%) sepia(${filters.sepia}%) blur(${filters.blur}px) hue-rotate(${filters.hueRotate}deg)`
 
@@ -92,11 +102,12 @@ const Main = () => {
     const selectedFile = event.target.files?.[0]
     if (!selectedFile) return
 
-    setFile(selectedFile)
     setOriginalName(selectedFile.name)
     setPreviewUrl(URL.createObjectURL(selectedFile))
     setFilters(defaultFilters)
     setSelectedPreset('original')
+    setSelectedObject('none')
+    setObjectPosition('center')
     setEnhancedUrl('')
   }
 
@@ -120,7 +131,90 @@ const Main = () => {
     ctx.filter = filterString
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    if (selectedObject !== 'none') {
+      drawOverlayObject(ctx, canvas.width, canvas.height)
+    }
     setEnhancedUrl(canvas.toDataURL('image/png'))
+  }
+
+  const arStickerOptions = [
+    { key: 'none', label: 'None', emoji: '' },
+    { key: 'sunglasses', label: 'Glasses', emoji: '🕶️' },
+    { key: 'heartEyes', label: 'Love Lens', emoji: '😍' },
+    { key: 'crown', label: 'Royal', emoji: '👑' },
+    { key: 'sparkle', label: 'Sparkle', emoji: '✨' },
+  ]
+
+  const arFilterString = `brightness(${arFilters.brightness}%) contrast(${arFilters.contrast}%) saturate(${arFilters.saturation}%)`
+
+  const drawArSticker = (ctx, width, height) => {
+    const centerX = width / 2
+    const centerY = height / 3
+    ctx.save()
+    ctx.font = `${Math.floor(width / 5)}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(arStickerOptions.find((option) => option.key === selectedSticker)?.emoji || '', centerX, centerY)
+    ctx.restore()
+  }
+
+  const objectOptions = [
+    { key: 'none', label: 'None', emoji: '' },
+    { key: 'star', label: 'Star', emoji: '⭐' },
+    { key: 'heart', label: 'Heart', emoji: '❤️' },
+    { key: 'sparkle', label: 'Sparkle', emoji: '✨' },
+    { key: 'hat', label: 'Hat', emoji: '🎩' },
+  ]
+
+  const objectPositionOptions = [
+    { key: 'top-left', label: 'Top left' },
+    { key: 'center', label: 'Center' },
+    { key: 'bottom-right', label: 'Bottom right' },
+  ]
+
+  const selectedObjectEmoji = objectOptions.find((option) => option.key === selectedObject)?.emoji || ''
+
+  const drawOverlayObject = (ctx, width, height) => {
+    const objectEmoji = objectOptions.find((option) => option.key === selectedObject)?.emoji
+    if (!objectEmoji) return
+
+    const positions = {
+      'top-left': [width * 0.2, height * 0.2],
+      center: [width * 0.5, height * 0.5],
+      'bottom-right': [width * 0.8, height * 0.8],
+    }
+
+    const [x, y] = positions[objectPosition] || positions.center
+
+    ctx.save()
+    ctx.font = `${Math.floor(width / 6)}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(objectEmoji, x, y)
+    ctx.restore()
+  }
+
+  const captureArPhoto = () => {
+    const video = videoRef.current
+    const canvas = arCanvasRef.current
+    if (!video || !canvas) return
+
+    const width = video.videoWidth || 640
+    const height = video.videoHeight || 480
+    canvas.width = width
+    canvas.height = height
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.filter = arFilterString
+    ctx.clearRect(0, 0, width, height)
+    ctx.drawImage(video, 0, 0, width, height)
+    if (selectedSticker !== 'none') {
+      drawArSticker(ctx, width, height)
+    }
+
+    setArCaptureUrl(canvas.toDataURL('image/png'))
   }
 
   useEffect(() => {
@@ -128,7 +222,40 @@ const Main = () => {
     if (imageRef.current?.complete) {
       drawCanvas()
     }
-  }, [previewUrl, filters])
+  }, [previewUrl, filters, selectedObject, objectPosition])
+
+  useEffect(() => {
+    if (!arActive) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
+      }
+      return
+    }
+
+    setCameraError('')
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'user' } })
+      .then((stream) => {
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.play().catch(() => {})
+        }
+      })
+      .catch((error) => {
+        console.error(error)
+        setCameraError('Unable to access the camera. Please allow camera access and refresh the page.')
+        setArActive(false)
+      })
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
+      }
+    }
+  }, [arActive])
 
   const handleImageLoad = () => {
     drawCanvas()
@@ -246,33 +373,172 @@ const Main = () => {
             <div className='rounded-3xl border border-white/10 bg-slate-900/80 p-6'>
               <p className='text-sm font-semibold text-white'>Preview</p>
               <div className='mt-4 min-h-80 overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-950 p-4'>
-                {previewUrl ? (
-                  <img
-                    ref={imageRef}
-                    src={previewUrl}
-                    alt='Uploaded preview'
-                    onLoad={handleImageLoad}
-                    style={{ filter: filterString }}
-                    className='h-full w-full rounded-3xl object-contain'
-                  />
+                <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='flex items-center gap-2'>
+                    <button
+                      type='button'
+                      onClick={() => setArActive(false)}
+                      className={`rounded-3xl px-4 py-2 text-sm font-semibold transition ${!arActive ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                    >
+                      Image Mode
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => setArActive(true)}
+                      className={`rounded-3xl px-4 py-2 text-sm font-semibold transition ${arActive ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                    >
+                      Live AR Lens
+                    </button>
+                  </div>
+                  {arActive && (
+                    <div className='flex flex-wrap gap-2'>
+                      {arStickerOptions.map((option) => (
+                        <button
+                          key={option.key}
+                          type='button'
+                          onClick={() => setSelectedSticker(option.key)}
+                          className={`rounded-3xl px-3 py-2 text-sm font-semibold transition ${selectedSticker === option.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {!arActive && previewUrl && (
+                  <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
+                    <p className='text-sm font-semibold text-white'>Add object to image</p>
+                    <div className='mt-4 grid gap-3 sm:grid-cols-2'>
+                      {objectOptions.map((option) => (
+                        <button
+                          key={option.key}
+                          type='button'
+                          onClick={() => setSelectedObject(option.key)}
+                          className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${selectedObject === option.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                        >
+                          {option.emoji} {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className='mt-4 flex flex-wrap gap-2'>
+                      {objectPositionOptions.map((position) => (
+                        <button
+                          key={position.key}
+                          type='button'
+                          onClick={() => setObjectPosition(position.key)}
+                          className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${objectPosition === position.key ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                        >
+                          {position.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {arActive ? (
+                  <div className='relative h-80 overflow-hidden rounded-3xl border border-slate-700 bg-black'>
+                    <video
+                      ref={videoRef}
+                      className='h-full w-full object-cover'
+                      playsInline
+                      muted
+                    />
+                    {selectedSticker !== 'none' && (
+                      <div className='pointer-events-none absolute inset-x-0 top-0 flex justify-center pt-16 text-[4rem]'>
+                        {arStickerOptions.find((option) => option.key === selectedSticker)?.emoji}
+                      </div>
+                    )}
+                    {cameraError && (
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/70 text-center text-sm text-red-300'>
+                        {cameraError}
+                      </div>
+                    )}
+                  </div>
+                ) : previewUrl ? (
+                  <div className='relative h-80 w-full rounded-3xl border border-slate-700/60 bg-slate-950'>
+                    <img
+                      ref={imageRef}
+                      src={previewUrl}
+                      alt='Uploaded preview'
+                      onLoad={handleImageLoad}
+                      style={{ filter: filterString }}
+                      className='h-full w-full rounded-3xl object-contain'
+                    />
+                    {selectedObject !== 'none' && selectedObjectEmoji && (
+                      <div className={`pointer-events-none absolute ${objectPosition === 'top-left' ? 'left-8 top-8' : objectPosition === 'bottom-right' ? 'right-8 bottom-8' : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'} text-[4rem]`}>
+                        {selectedObjectEmoji}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className='flex h-80 items-center justify-center rounded-3xl border border-dashed border-slate-600 bg-slate-950 text-center text-slate-500'>
-                    Upload an image to see the enhanced preview.
+                    Upload an image or switch to Live AR Lens to begin.
                   </div>
                 )}
               </div>
 
               <div className='mt-5 flex flex-col gap-3 sm:flex-row sm:items-center'>
-                <a
-                  href={enhancedUrl || previewUrl || '#'}
-                  download={`pixelforge-enhanced-${originalName}`}
-                  className={`inline-flex items-center justify-center rounded-3xl px-5 py-3 text-sm font-semibold transition ${previewUrl ? 'bg-blue-500 text-white hover:bg-blue-400' : 'cursor-not-allowed bg-slate-700 text-slate-400'}`}
-                  aria-disabled={!previewUrl}
-                >
-                  Download Enhanced Image
-                </a>
-                <span className='text-sm text-slate-500'>Use the sliders to fine-tune the result before downloading.</span>
+                {!arActive ? (
+                  <>
+                    <a
+                      href={enhancedUrl || previewUrl || '#'}
+                      download={`pixelforge-enhanced-${originalName}`}
+                      className={`inline-flex items-center justify-center rounded-3xl px-5 py-3 text-sm font-semibold transition ${previewUrl ? 'bg-blue-500 text-white hover:bg-blue-400' : 'cursor-not-allowed bg-slate-700 text-slate-400'}`}
+                      aria-disabled={!previewUrl}
+                    >
+                      Download Enhanced Image
+                    </a>
+                    <span className='text-sm text-slate-500'>Use the sliders to fine-tune the result before downloading.</span>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type='button'
+                      onClick={captureArPhoto}
+                      className='inline-flex items-center justify-center rounded-3xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-400'
+                    >
+                      Capture AR Photo
+                    </button>
+                    <a
+                      href={arCaptureUrl || '#'}
+                      download={`pixelforge-ar-${originalName}`}
+                      className={`inline-flex items-center justify-center rounded-3xl px-5 py-3 text-sm font-semibold transition ${arCaptureUrl ? 'bg-green-500 text-white hover:bg-green-400' : 'cursor-not-allowed bg-slate-700 text-slate-400'}`}
+                      aria-disabled={!arCaptureUrl}
+                    >
+                      Download AR Photo
+                    </a>
+                  </>
+                )}
               </div>
+
+              {arActive && (
+                <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
+                  <p className='text-sm font-semibold text-white'>AR Lens Filters</p>
+                  <div className='mt-4 grid gap-4 sm:grid-cols-3'>
+                    {[
+                      { name: 'brightness', label: 'Brightness', value: arFilters.brightness, min: 80, max: 140 },
+                      { name: 'contrast', label: 'Contrast', value: arFilters.contrast, min: 80, max: 140 },
+                      { name: 'saturation', label: 'Saturation', value: arFilters.saturation, min: 80, max: 180 },
+                    ].map((control) => (
+                      <div key={control.name}>
+                        <div className='flex items-center justify-between text-sm text-slate-300'>
+                          <span>{control.label}</span>
+                          <span className='font-semibold text-white'>{control.value}%</span>
+                        </div>
+                        <input
+                          type='range'
+                          min={control.min}
+                          max={control.max}
+                          value={control.value}
+                          onChange={(event) => setArFilters((prev) => ({ ...prev, [control.name]: Number(event.target.value) }))}
+                          className='mt-2 w-full accent-blue-400'
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
