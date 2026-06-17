@@ -552,9 +552,7 @@ const Main = () => {
                     ))}
                   </div>
                 </div>
-              </div>
-
-              {arActive ? (
+                {arActive ? (
                   <div className='relative h-80 overflow-hidden rounded-3xl border border-slate-700 bg-black'>
                     <video
                       ref={videoRef}
@@ -595,7 +593,6 @@ const Main = () => {
                   </div>
                 )}
               </div>
-
               <div className='mt-5 flex flex-col gap-3 sm:flex-row sm:items-center'>
                 {!arActive ? (
                   <>
@@ -629,7 +626,6 @@ const Main = () => {
                   </>
                 )}
               </div>
-
               {arActive && (
                 <div className='mt-4 rounded-3xl border border-white/10 bg-slate-900/80 p-4'>
                   <p className='text-sm font-semibold text-white'>AR Lens Filters</p>
