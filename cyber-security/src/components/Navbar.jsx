@@ -62,6 +62,7 @@ const Navbar = () => {
             <Link to='/' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Home</Link>
             <Link to='/about' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>About</Link>
             <Link to='/contact' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Contact</Link>
+            <Link to='/privacy-policy' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Privacy Policy</Link>
 
             <div className='relative'>
               <button
