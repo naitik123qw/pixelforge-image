@@ -33,7 +33,7 @@ const About = () => {
                   {[
                     { title: 'Smart auto-enhance', description: 'One-click improvement powered by advanced filters and color optimization.', badge: 'AI-driven' },
                     { title: 'Live preview edits', description: 'See changes immediately as you adjust brightness, contrast, and style.', badge: 'Real-time' },
-                    { title: 'Download for any platform', description: 'Choose Android, Mac, or Windows and keep your images ready to use.', badge: 'Cross-platform' },
+                    { title: 'Download for any platform', description: 'Choose Android or Windows and keep your images ready to use.', badge: 'Cross-platform' },
                   ].map((item) => (
                     <div key={item.title} className='rounded-3xl border border-white/10 bg-slate-950/80 p-5 transition duration-300 hover:-translate-y-1 hover:border-blue-400/40 hover:bg-slate-900/95'>
                       <div className='flex items-center justify-between gap-4'>

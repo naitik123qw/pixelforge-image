@@ -5,7 +5,17 @@ import App from './App.jsx'
 import { BrowserRouter } from "react-router-dom";
 
 createRoot(document.getElementById('root')).render(
-    <BrowserRouter >
-     <App />
-    </BrowserRouter >
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>
 )
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('Service worker registration failed:', error)
+    })
+  })
+}

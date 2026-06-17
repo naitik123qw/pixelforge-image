@@ -1,28 +1,82 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 const platformData = {
   android: {
-    title: 'Android Download',
-    description: 'Get the PixelForge AI Android installer and start enhancing photos on the go.',
-    button: 'Download APK',
-  },
-  mac: {
-    title: 'Mac Download',
-    description: 'Download the PixelForge AI app for macOS and enjoy desktop-grade image enhancements.',
-    button: 'Download for Mac',
+    title: 'Android Install',
+    description: 'Add PixelForge AI to your home screen for a native-like Android experience.',
+    button: 'Install App',
   },
   windows: {
-    title: 'Windows Download',
-    description: 'Install PixelForge AI on Windows for fast image editing and export.',
-    button: 'Download for Windows',
+    title: 'Windows Install',
+    description: 'Download the PixelForge AI Electron installer for Windows.',
+    button: 'Download Electron Installer',
+    download: '/PixelForgeAI-Installer.exe',
   },
 }
 
 const Download = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
+  const [installAvailable, setInstallAvailable] = useState(false)
   const location = useLocation()
   const selectedPlatform = new URLSearchParams(location.search).get('platform') || 'android'
   const platform = platformData[selectedPlatform.toLowerCase()] || platformData.android
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault()
+      setDeferredPrompt(event)
+      setInstallAvailable(true)
+    }
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null)
+      setInstallAvailable(false)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
+  }, [])
+
+  const handleAndroidInstall = async () => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const choiceResult = await deferredPrompt.userChoice
+    if (choiceResult.outcome === 'accepted') {
+      setInstallAvailable(false)
+    }
+    setDeferredPrompt(null)
+  }
+
+  const renderActionButton = () => {
+    if (selectedPlatform === 'windows') {
+      return (
+        <a
+          href={platform.download}
+          download='PixelForgeAI-Installer.exe'
+          className='inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-cyan-500/20 transition hover:from-blue-500 hover:to-cyan-400'
+        >
+          {platform.button}
+        </a>
+      )
+    }
+
+    return (
+      <button
+        type='button'
+        onClick={handleAndroidInstall}
+        disabled={!installAvailable}
+        className='inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-cyan-500/20 transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50'
+      >
+        {installAvailable ? platform.button : 'Open browser menu > Install'}
+      </button>
+    )
+  }
 
   return (
     <main className='min-h-screen bg-slate-950 text-white'>
@@ -37,8 +91,8 @@ const Download = () => {
                 Download PixelForge AI
               </p>
               <h1 className='text-4xl font-bold leading-tight text-white sm:text-5xl'>Choose your platform and get the app instantly.</h1>
-              <p className='max-w-2xl text-lg text-slate-300'>PixelForge AI works beautifully across Android, Mac, and Windows. Select the version you need, then follow the simple installation steps.</p>
-              <div className='grid gap-4 sm:grid-cols-3'>
+              <p className='max-w-2xl text-lg text-slate-300'>PixelForge AI works smoothly on Android and Windows. Select the version you need, then follow the simple installation steps.</p>
+              <div className='grid gap-4 sm:grid-cols-2'>
                 {Object.entries(platformData).map(([key, item]) => (
                   <Link
                     key={key}
@@ -61,9 +115,7 @@ const Download = () => {
                 </div>
 
                 <div className='space-y-4'>
-                  <button className='w-full rounded-3xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-cyan-500/20 transition hover:from-blue-500 hover:to-cyan-400'>
-                    {platform.button}
-                  </button>
+                  {renderActionButton()}
                   <div className='rounded-3xl border border-white/10 bg-slate-950/90 p-5 text-sm text-slate-300'>
                     <p className='font-semibold text-white'>Installation steps</p>
                     <ol className='mt-4 space-y-3 list-decimal pl-5 text-slate-300'>
@@ -88,7 +140,7 @@ const Download = () => {
               <ul className='mt-6 space-y-4 text-slate-300'>
                 <li className='rounded-3xl border border-white/5 bg-slate-950/90 p-5'>Fast installation and a modern UI tuned for desktop and mobile.</li>
                 <li className='rounded-3xl border border-white/5 bg-slate-950/90 p-5'>Seamless image upload, enhancement, and export workflows.</li>
-                <li className='rounded-3xl border border-white/5 bg-slate-950/90 p-5'>Support for Android, macOS, and Windows environments.</li>
+                <li className='rounded-3xl border border-white/5 bg-slate-950/90 p-5'>Support for Android PWA install and Windows EXE download.</li>
               </ul>
             </div>
             <div className='rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-950 to-slate-900/95 p-8 shadow-xl shadow-slate-950/30'>

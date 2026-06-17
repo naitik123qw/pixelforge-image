@@ -1,18 +1,46 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../assets/logo1.png'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [downloadOpen, setDownloadOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isHome = location.pathname === '/'
+
+  const handleBack = () => {
+    if (isHome) return
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
+  const toggleMenu = () => setIsOpen((prev) => !prev)
+  const toggleDownload = () => setDownloadOpen((prev) => !prev)
+  const backButtonClass = isHome
+    ? 'rounded-3xl border border-white/10 px-3 py-2 text-sm font-semibold text-slate-400 cursor-not-allowed bg-slate-900/70 transition'
+    : 'rounded-3xl border border-white/10 px-3 py-2 text-sm font-semibold text-white bg-slate-900 transition hover:bg-slate-800 hover:text-blue-300'
 
   return (
     <nav className='bg-gray-950 text-white shadow-lg shadow-black/30'>
       <div className='mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8'>
-        <Link to='/' className='flex items-center gap-3'>
-          <img src={logo} alt='Logo' className='h-10 w-auto' />
-          <span className='text-lg font-semibold text-blue-300'>PixelForge AI</span>
-        </Link>
+        <div className='flex items-center gap-3'>
+          <button
+            type='button'
+            onClick={handleBack}
+            disabled={isHome}
+            className={backButtonClass}
+          >
+            Back
+          </button>
+          <Link to='/' className='flex items-center gap-3'>
+            <img src={logo} alt='Logo' className='h-10 w-auto' />
+            <span className='text-lg font-semibold text-blue-300'>PixelForge AI</span>
+          </Link>
+        </div>
 
         <button
           type='button'
@@ -38,7 +66,7 @@ const Navbar = () => {
             <div className='relative'>
               <button
                 type='button'
-                onClick={() => setDownloadOpen((prev) => !prev)}
+                onClick={toggleDownload}
                 className='inline-flex items-center rounded-3xl border border-white/20 bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition hover:from-blue-500 hover:to-cyan-400 md:px-3 md:py-2'
               >
                 Download
@@ -52,13 +80,6 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Android
-                </Link>
-                <Link
-                  to='/download?platform=mac'
-                  className='mt-1 block rounded-3xl px-4 py-3 text-sm text-white transition hover:bg-slate-900 hover:text-blue-300'
-                  onClick={() => setIsOpen(false)}
-                >
-                  Mac
                 </Link>
                 <Link
                   to='/download?platform=windows'
