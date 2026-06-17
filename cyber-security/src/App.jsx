@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import AdBanner from "./components/AdBanner";
 import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
@@ -14,6 +15,7 @@ const App = () => {
   return (
     <>
       <Navbar />
+      <AdBanner />
 
       <Routes>
         <Route path="/" element={<Home />} />

@@ -225,6 +225,16 @@ const Main = () => {
   }, [previewUrl, filters, selectedObject, objectPosition])
 
   useEffect(() => {
+    if (window.adsbygoogle) {
+      try {
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      } catch (error) {
+        console.error('Adsense push failed', error)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (!arActive) {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
@@ -562,6 +572,18 @@ const Main = () => {
             </a>
           </div>
         </div>
+      </div>
+
+      {/* add-1 */}
+      <div className='mt-8 rounded-3xl border border-white/10 bg-slate-900/80 p-6 text-center'>
+        <ins
+          className='adsbygoogle'
+          style={{ display: 'block' }}
+          data-ad-client='ca-pub-5902005630547739'
+          data-ad-slot='5172306320'
+          data-ad-format='auto'
+          data-full-width-responsive='true'
+        />
       </div>
 
       <canvas ref={canvasRef} className='hidden' />
