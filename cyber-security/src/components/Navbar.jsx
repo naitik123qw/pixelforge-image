@@ -51,9 +51,9 @@ const Navbar = () => {
         >
           <span className='sr-only'>Open main menu</span>
           <div className='relative h-5 w-5'>
-            <span className={`absolute left-0 top-1/2 block h-[2px] w-full bg-white transition-transform duration-300 ${isOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'}`} />
-            <span className={`absolute left-0 top-1/2 block h-[2px] w-full bg-white transition-all duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
-            <span className={`absolute left-0 top-1/2 block h-[2px] w-full bg-white transition-transform duration-300 ${isOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'}`} />
+            <span className={`absolute left-0 top-1/2 block h-0.5 w-full bg-white transition-transform duration-300 ${isOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'}`} />
+            <span className={`absolute left-0 top-1/2 block h-0.5 w-full bg-white transition-all duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
+            <span className={`absolute left-0 top-1/2 block h-0.5 w-full bg-white transition-transform duration-300 ${isOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'}`} />
           </div>
         </button>
 
@@ -62,13 +62,15 @@ const Navbar = () => {
             <Link to='/' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Home</Link>
             <Link to='/about' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>About</Link>
             <Link to='/contact' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Contact</Link>
+            <Link to='/blog' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Blog</Link>
             <Link to='/privacy-policy' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Privacy Policy</Link>
+            <Link to='/terms' className='rounded-3xl px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-900 hover:text-blue-300 md:px-2 md:py-2'>Terms</Link>
 
             <div className='relative'>
               <button
                 type='button'
                 onClick={toggleDownload}
-                className='inline-flex items-center rounded-3xl border border-white/20 bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition hover:from-blue-500 hover:to-cyan-400 md:px-3 md:py-2'
+                className='inline-flex items-center rounded-3xl border border-white/20 bg-linear-to-r from-blue-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition hover:from-blue-500 hover:to-cyan-400 md:px-3 md:py-2'
               >
                 Download
                 <span className='ml-2 text-xs'>▼</span>
@@ -78,14 +80,14 @@ const Navbar = () => {
                 <Link
                   to='/download?platform=android'
                   className='block rounded-3xl px-4 py-3 text-sm text-white transition hover:bg-slate-900 hover:text-blue-300'
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setDownloadOpen(false)}
                 >
                   Android
                 </Link>
                 <Link
                   to='/download?platform=windows'
                   className='mt-1 block rounded-3xl px-4 py-3 text-sm text-white transition hover:bg-slate-900 hover:text-blue-300'
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setDownloadOpen(false)}
                 >
                   Windows
                 </Link>

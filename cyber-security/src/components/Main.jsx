@@ -286,6 +286,44 @@ const Main = () => {
 
   return (
     <section className='mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8'>
+      <div className='mb-10 rounded-[36px] border border-white/10 bg-slate-950/90 p-8 shadow-2xl shadow-slate-950/30'>
+        <div className='grid gap-8 xl:grid-cols-[1.4fr_0.9fr]'>
+          <div className='space-y-6'>
+            <p className='text-sm font-semibold uppercase tracking-[0.3em] text-blue-400'>Welcome to PixelForge</p>
+            <h1 className='text-4xl font-bold leading-tight text-white sm:text-5xl'>Enhance images instantly with smart AI tools.</h1>
+            <p className='max-w-2xl text-base text-slate-300 sm:text-lg'>Upload any photo, let our intelligent enhancement engine improve color and clarity, then refine the result with easy controls. Built for speed, quality, and worry-free editing.</p>
+            <div className='grid gap-4 sm:grid-cols-3'>
+              {[
+                { title: 'Trusted by creators', description: 'Used by photographers, marketers, and designers to polish visuals fast.' },
+                { title: 'Privacy-safe process', description: 'We do not claim ownership of your files and keep uploads secure.' },
+                { title: 'Fast results', description: 'Enhance and download images quickly without complex software.' },
+              ].map((item) => (
+                <div key={item.title} className='rounded-3xl border border-white/10 bg-slate-900/80 p-5'>
+                  <p className='text-sm uppercase tracking-[0.24em] text-slate-400'>{item.title}</p>
+                  <p className='mt-3 text-sm leading-6 text-slate-300'>{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className='rounded-4xl border border-white/10 bg-linear-to-br from-slate-900/80 via-slate-950 to-slate-900/95 p-8 shadow-2xl shadow-slate-950/40'>
+            <h2 className='text-2xl font-semibold text-white'>What PixelForge AI offers</h2>
+            <p className='mt-4 text-slate-300'>Enhance images intelligently, preview edits live, and export high-quality results for web and mobile.</p>
+            <div className='mt-8 grid gap-4'>
+              {[
+                { title: 'AI-enhanced color', description: 'Automatically correct tones and boost vibrancy while preserving natural detail.' },
+                { title: 'Live preview control', description: 'Adjust brightness, contrast, saturation, and style instantly.' },
+                { title: 'Download-ready output', description: 'Export polished images in one click with minimal fuss.' },
+              ].map((item) => (
+                <div key={item.title} className='rounded-3xl border border-white/10 bg-slate-950/90 p-5'>
+                  <h3 className='text-lg font-semibold text-white'>{item.title}</h3>
+                  <p className='mt-2 text-slate-300'>{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className='rounded-4xl border border-white/10 bg-slate-950/90 p-6 shadow-2xl shadow-slate-950/30'>
         <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
