@@ -2,4 +2,3 @@ User-agent: *
 Disallow:
 
 Sitemap: https://pixelforge-img.vercel.app/sitemap.xml
-Host: https://pixelforge-img.vercel.app
