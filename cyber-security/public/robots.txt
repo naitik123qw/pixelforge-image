@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
 Sitemap: https://pixelforge-img.vercel.app/sitemap.xml
